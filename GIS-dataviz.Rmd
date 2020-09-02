@@ -1,0 +1,63 @@
+---
+title: "Data Visualization of Geographic Temperature Data"
+author: "Brandi P. Smith"
+date: "8/31/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#install.packages("tidyverse")
+#devtools::install_github("hrbrmstr/streamgraph")
+```
+
+## Purpose
+The goal of this project is to visualize high-dimensional data from the GISS Surface Temperature Analysis data <https://data.giss.nasa.gov/gistemp/>. 
+
+## Background
+[Streamgraphs][id] are a nice way to visualize data of high-dimensinality. Essentially it allows us to visualize categorical data over time. It is also a type of stacked chart. The data set is comprised of many variables but we will focus on
+
+* Year - ordinal, discrete variable
+* Month - ordinal, discrete variable
+* Temperature (Value) - ordinal, continuous variable
+
+We can treat the year as a group variable to apply custom colors to better observe the data. Our dependent variable or 'y' variable is temperature while our independent variable or 'x' is the month. 
+
+```{r import data}
+##import data 
+GISTEMPData1 <- read.csv("ExcelFormattedGISTEMPDataCSV.csv")
+GISTEMPData2 <- read.csv("ExcelFormattedGISTEMPData2CSV.csv")
+
+## merge both data files
+GIS_dat<-merge(GISTEMPData1, GISTEMPData2, by="Year")
+
+## observe first 5 lines of the data
+head(GIS_dat)
+```
+
+## Result
+```{r steamgraph}
+# Load libraries
+library(tidyverse)
+library(streamgraph)
+library(tidyr)
+library(ggthemes)
+
+# Subset the data we want
+# convert from wide to long format before plotting
+GIS_YM<-GIS_dat[,1:13] %>%
+  gather(key=month, value=temp, Jan:Dec, factor_key = TRUE)
+
+#Plot
+GIS_YM %>% 
+  streamgraph(key="month", value="temp", date="Year", offset = "zero",interpolate="step") %>%
+  sg_fill_tableau("greenorange12") %>%
+  sg_axis_x(15, "year", "%Y") %>%
+  sg_legend(show=TRUE) %>%
+  sg_title("Cumulative Frequency of Surface Temperature 1850-2015")
+```
+
+## Conclusions
+Over time, the culmulative surface temperature has increased but interestingly had a leveling off around 1935-1980 which could be due to some other factor which was not considered here. Further analysis, such as time series analysis etc should be done to better address these changes over time. 
+
+[id]: https://datavizcatalogue.com/methods/stream_graph.html "Stream Graph"
